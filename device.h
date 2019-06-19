@@ -50,8 +50,6 @@ struct Device{
 
     double read();
 
-    static int auto_discovery(std::map<device_type, Device*> &devices);
-
     static void send_i2c_command(
         int address,
         const char* cmd);
