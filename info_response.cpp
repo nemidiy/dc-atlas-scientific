@@ -14,6 +14,14 @@ Device::device_type InfoResponse::get_device_type(){
 
     if(partitioned_data[1] == "RTD")
         return Device::TEMP_SENSOR;
+    else if(partitioned_data[1] == "pH")
+        return Device::PH_SENSOR;
+    else if(partitioned_data[1] == "ORP")
+        return Device::ORP_SENSOR;
+    else if(partitioned_data[1] == "EC")
+        return Device::EC_SENSOR;
+    else if(partitioned_data[1] == "DO")
+        return Device::DO_SENSOR;
     return Device::UNKNOWN;
 }
 
