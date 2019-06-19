@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <Arduino.h>
+#include <functional>
 
 #include "device_response.h"
 
@@ -24,6 +25,8 @@ namespace atlas {
 
 struct Device{
 
+    friend class DeviceManager;
+
     typedef enum {
       PH_SENSOR   = 0,
       EC_SENSOR   = 1,
@@ -34,6 +37,8 @@ struct Device{
       PUMP        = 6,
       UNKNOWN     = 7,
     } device_type;
+
+    typedef std::function<double (Device* dev)> read_function;
 
     //constructor
     Device(int i2c_addr, device_type t);
@@ -48,7 +53,7 @@ struct Device{
       return dev_type;
     }
 
-    double read();
+    read_function read();
 
     static void send_i2c_command(
         int address,
@@ -59,6 +64,9 @@ struct Device{
         char* buffer,
         int buffer_size);
 
+    double get_last_value(){
+      return last_value;
+    }
 
   private:
 
@@ -67,6 +75,8 @@ struct Device{
 
     //device_type
     device_type dev_type;
+
+    double last_value;
 };
 
 } // namespace atlas

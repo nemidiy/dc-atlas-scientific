@@ -11,38 +11,48 @@ using namespace gj::atlas;
 Device::Device(int i2c_addr, device_type t){
   this->i2c_addr = i2c_addr;
   this->dev_type = t;
+  this->last_value = -888;
 }
 
 Device::Device(const Device& d){
   this->i2c_addr = d.i2c_addr;
   this->dev_type = d.dev_type;
+  this->last_value = d.last_value;
 }
 
 Device::~Device(){
 
 }
 
-double Device::read(){
-  double value = 0.00;
+Device::read_function Device::read(){
   send_i2c_command(i2c_addr, "R\0");
+
   // we now wait 600ms for the response according to documentation
-  delay(600);
-  int response_data_size = 20;
-  char response_data[response_data_size];
-  DeviceResponse::i2c_response_code code = DeviceResponse::NO_DATA;
-  code = read_i2c_response(i2c_addr, response_data, response_data_size);
-  if(code == DeviceResponse::SUCCESS){
-    // let's build the INFO response
-    DeviceResponse* response =
-      DeviceResponse::build_response(
-          DeviceCommand::READ, code, response_data, response_data_size);
-    ReadResponse* read = static_cast<ReadResponse*>(response);
-    value = read->get_value_double();
-    delete read;
-  }else{
-    //TODO raise exception
-  }
-  return value;
+  // so we just return the code that needs to be executed then so
+  // that we don't lock
+  auto f = [](Device* dev) -> double {
+    double value = 0.00;
+    int response_data_size = 20;
+    char response_data[response_data_size];
+    DeviceResponse::i2c_response_code code = DeviceResponse::NO_DATA;
+    code = read_i2c_response(dev->i2c_addr, response_data, response_data_size);
+    if(code == DeviceResponse::SUCCESS){
+      // let's build the INFO response
+      DeviceResponse* response =
+        DeviceResponse::build_response(
+            DeviceCommand::READ, code, response_data, response_data_size);
+      ReadResponse* read = static_cast<ReadResponse*>(response);
+      value = read->get_value_double();
+      delete read;
+    }else if(code == DeviceResponse::NOT_FINISHED){
+      //TODO raise exception
+    }else{
+      //TODO raise exception
+    }
+    return value;
+  };
+  //return the lambda
+  return f;
 }
 
 void Device::send_i2c_command(int address ,const char* cmd){
