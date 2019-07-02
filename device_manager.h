@@ -9,17 +9,20 @@ namespace atlas {
 
 struct DeviceManager{
 
-	DeviceManager(unsigned long int loop_millis=1000);
+    DeviceManager(unsigned long int loop_millis=1000);
 
-	virtual ~DeviceManager();
+    virtual ~DeviceManager();
 
-	void add_device(
-			Device::device_type t,
-			Device* dev);
+    static
+    DeviceManager* get_instance(DeviceManager* i = NULL);
 
-	double get_device_value(Device::device_type t);
+    void add_device(
+            Device::device_type t,
+            Device* dev);
 
-	void loop();
+    double get_device_value(Device::device_type t);
+
+    void loop();
 
   int auto_discovery();
 
@@ -30,17 +33,19 @@ struct DeviceManager{
 
 private:
 
-	void send_reads();
+    void send_reads();
 
-	void fetch_responses();
+    void fetch_responses();
 
-	std::map<
+    std::map<
     gj::atlas::Device::device_type,gj::atlas::Device*> all_devs;
-	std::map<
-    gj::atlas::Device::device_type,	gj::atlas::Device::read_function> reads;
+    std::map<
+    gj::atlas::Device::device_type, gj::atlas::Device::read_function> reads;
 
-	unsigned long int loop_millis;
-  unsigned long int last_run;
+    unsigned long int loop_millis;
+    unsigned long int last_run;
+
+    static DeviceManager* instance;
 };
 
 } // namespace atlas

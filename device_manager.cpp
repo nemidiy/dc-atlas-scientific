@@ -6,6 +6,8 @@ using namespace gj::atlas;
 
 #define READ_TIME_MILLIS 900
 
+DeviceManager* DeviceManager::instance;
+
 DeviceManager::DeviceManager(unsigned long int loop_millis){
   this->loop_millis = loop_millis;
   this->last_run = 0;
@@ -13,6 +15,15 @@ DeviceManager::DeviceManager(unsigned long int loop_millis){
 
 DeviceManager::~DeviceManager(){
 
+}
+
+DeviceManager* DeviceManager::get_instance(DeviceManager* i){
+  if(i){
+    DeviceManager::instance = i;
+  }else if(!instance){
+    DeviceManager::instance = new DeviceManager;
+  }
+  return DeviceManager::instance;
 }
 
 void DeviceManager::add_device(
