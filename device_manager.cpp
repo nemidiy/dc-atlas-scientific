@@ -2,7 +2,7 @@
 #include "device_command.h"
 #include "info_response.h"
 
-using namespace gj::atlas;
+using namespace dc::atlas;
 
 #define READ_TIME_MILLIS 900
 
@@ -34,7 +34,7 @@ void DeviceManager::add_device(
 
 double DeviceManager::get_device_value(Device::device_type t){
   
-  std::map<gj::atlas::Device::device_type, gj::atlas::Device*>::iterator it;
+  std::map<dc::atlas::Device::device_type, dc::atlas::Device*>::iterator it;
   if((it = all_devs.find(t)) != all_devs.end()){
     return it->second->get_last_value();
   }

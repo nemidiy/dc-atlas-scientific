@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-using namespace gj::atlas;
+using namespace dc::atlas;
 
 DeviceResponse::DeviceResponse(
               i2c_response_code code, const std::string& response_data){

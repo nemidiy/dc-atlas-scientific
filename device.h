@@ -19,7 +19,7 @@
 #define I2C_ADDRESS_SCAN_START 90
 #define I2C_ADDRESS_SCAN_FINISH 120
 
-namespace gj {
+namespace dc {
 
 namespace atlas {
 
@@ -81,6 +81,6 @@ struct Device{
 
 } // namespace atlas
 
-} // namespace gj
+} // namespace dc
 
 #endif

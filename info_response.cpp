@@ -1,6 +1,6 @@
 #include "info_response.h"
 
-using namespace gj::atlas;
+using namespace dc::atlas;
 
 InfoResponse::InfoResponse(
         i2c_response_code code, const std::string& response_data):

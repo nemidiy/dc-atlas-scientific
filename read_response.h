@@ -6,7 +6,7 @@
 #include "device.h"
 #include "device_response.h"
 
-namespace gj {
+namespace dc {
 
 namespace atlas {
 
@@ -24,5 +24,5 @@ struct ReadResponse: public DeviceResponse {
 
 } // namespace atlas
 
-} // namespace gj
+} // namespace dc
 #endif

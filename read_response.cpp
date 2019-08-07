@@ -1,6 +1,6 @@
 #include "read_response.h"
 #include <cstdlib>
-using namespace gj::atlas;
+using namespace dc::atlas;
 
 ReadResponse::ReadResponse(
     i2c_response_code code, const std::string& response_data):

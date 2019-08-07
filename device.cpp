@@ -6,7 +6,7 @@
 #include <Wire.h>
 #include <vector>
 
-using namespace gj::atlas;
+using namespace dc::atlas;
 
 Device::Device(int i2c_addr, device_type t){
   this->i2c_addr = i2c_addr;

@@ -3,7 +3,7 @@
 #include <Arduino.h>
 
 
-namespace gj {
+namespace dc {
 
 namespace atlas {
 
@@ -19,6 +19,6 @@ struct DeviceCommand {
 
 } // namespace atlas
 
-} // namespace gj
+} // namespace dc
 
 #endif

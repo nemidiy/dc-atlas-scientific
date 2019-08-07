@@ -3,7 +3,7 @@
 #include <map>
 #include <device.h>
 
-namespace gj {
+namespace dc {
 
 namespace atlas {
 
@@ -26,7 +26,7 @@ struct DeviceManager{
 
   int auto_discovery();
 
-  std::map<gj::atlas::Device::device_type,gj::atlas::Device*>
+  std::map<dc::atlas::Device::device_type, dc::atlas::Device*>
   get_all_devs(){
     return all_devs;
   }
@@ -38,9 +38,9 @@ private:
     void fetch_responses();
 
     std::map<
-    gj::atlas::Device::device_type,gj::atlas::Device*> all_devs;
+    dc::atlas::Device::device_type,dc::atlas::Device*> all_devs;
     std::map<
-    gj::atlas::Device::device_type, gj::atlas::Device::read_function> reads;
+    dc::atlas::Device::device_type, dc::atlas::Device::read_function> reads;
 
     unsigned long int loop_millis;
     unsigned long int last_run;
@@ -50,6 +50,6 @@ private:
 
 } // namespace atlas
 
-} // namespace gj
+} // namespace dc
 
 #endif

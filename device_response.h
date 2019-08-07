@@ -5,7 +5,7 @@
 #include <vector>
 #include "device_command.h"
 
-namespace gj {
+namespace dc {
 
 namespace atlas {
 
@@ -47,5 +47,5 @@ protected:
 
 } // namespace atlas
 
-} // namespace gj
+} // namespace dc
 #endif
