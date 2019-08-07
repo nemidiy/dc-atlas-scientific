@@ -18,7 +18,9 @@ Furthermore it was built using [platform.io](https://platformio.org/). This libr
 First clone the the repo somewhere in you computer:
 
 ```
-git clone https://github.com/nemiliani/dc-atlas-scientific.git 
+$ git clone https://github.com/nemiliani/dc-atlas-scientific.git
+$ cd dc-atlas-scientific
+$ git checkout develop
 ```
 
 In your platformio.ini file include the library under lib_deps :
