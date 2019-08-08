@@ -15,7 +15,7 @@ Furthermore it was built using [platform.io](https://platformio.org/). This libr
 
 # Including the library in your platform.io project
 
-First clone the the repo somewhere in you computer:
+First clone the the repo somewhere in your computer:
 
 ```
 $ git clone https://github.com/nemiliani/dc-atlas-scientific.git
