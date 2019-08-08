@@ -3,7 +3,9 @@ The library was built in order the interface with [Atlas-Scientific](https://www
 Furthermore it was built using [platform.io](https://platformio.org/). This library is licensed under the Apache v2.0 license included in the repo.
 
 # Disclaimer
-* The instructions assume you are using some Linux flavor, if using Windows some things may not apply and to be honest I really don't care ;)
+* Basic c++ coding knowledge is assumed
+* Platformio is installed, if not please refer to their documentation
+* The instructions assume you are using some Linux flavor, if using Windows or CrApple some things may not apply and to be honest I really don't care ;)
 * Atlas-Scientific is not related to this code in any way
 
 # Design decisions
@@ -23,19 +25,25 @@ $ cd dc-atlas-scientific
 $ git checkout develop
 ```
 
-In your platformio.ini file include the library under lib_deps :
+Create the platformio project somewhere else
+```
+$ cd ~
+$ mkdir my_project
+$ cd my_project
+$ platformio init
+```
+
+Edit your platformio.ini file and include the library under lib_deps, the following config will work for a wemos d1 r2, you need to change it according to the platform and board used
 
 ```
-[env:arduino]
-platform = ...
-board = ...
+[env:wemosd1]
+platform = espressif8266
+board = d1_mini
 framework = arduino
-build_flags = ...
-upload_speed = ...
+upload_speed = 115200
 lib_ldf_mode = deep
 lib_deps =
    /path/to/dc-atlas-scientific/src
-build_flags = ...
 ```
 Replace "/path/to/dc-atlas-scientific/src" with the path where the lib was checked out.
 
@@ -44,6 +52,7 @@ Replace "/path/to/dc-atlas-scientific/src" with the path where the lib was check
 Make sure you set up your EZO shields in I2C mode and assign an address that is in range 90 through 120, otherwise you will need to modify the auto discovery code to scan whatever range falls outside.
 
 ```c++
+#include <Wire.h>
 #include <device.h>
 #include <device_manager.h>
 
@@ -78,6 +87,7 @@ void setup(){
     kv.second : the device instance
     */
   }
+}
 ```
 
 Executing the auto-discovery will print out on the serial port the following :
@@ -164,6 +174,12 @@ void loop(){
 ```
 NOTE : depending on the EZO shield the response time varies from 600 to 900 ms. 
 
+# Upload and look at the serial prints
+
+```
+$ platformio run -t upload
+$ pio device monitor --port /dev/ttyUSB0 --baud 115200
+```
 
 # Internals
 
@@ -178,3 +194,4 @@ The Device class implements a read method that sends the read command over the I
 * Hooking up some CI tool to run unit tests when commiting
 * Integrating other sensors ?
 * Making it available through the Platformio's library manager
+* Serial support
