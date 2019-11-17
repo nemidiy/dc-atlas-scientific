@@ -38,6 +38,8 @@ Device::device_type InfoResponse::get_device_type(){
         return Device::EC_SENSOR;
     else if(partitioned_data[1] == "DO")
         return Device::DO_SENSOR;
+    else if(partitioned_data[1] == "FLO")
+        return Device::FLOW_SENSOR;
     return Device::UNKNOWN;
 }
 
