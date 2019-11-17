@@ -58,6 +58,9 @@ DeviceResponse* DeviceResponse::build_response(
       r = new InfoResponse(code, response_data);
   }else if(com == DeviceCommand::READ){
       r = new ReadResponse(code, response_data);
+  }else if(com == DeviceCommand::CLEAR){
+      // clear returns nc response data
+      r = new DeviceResponse(code, "");
   }else{
       r = new DeviceResponse(code, response_data);
   }

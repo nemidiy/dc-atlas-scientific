@@ -29,6 +29,7 @@ struct DeviceCommand {
       INFO   = 0,
       STATUS = 1,
       READ   = 2,
+      CLEAR  = 3,
     } device_command;
 
 };
