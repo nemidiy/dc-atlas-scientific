@@ -70,6 +70,7 @@ struct Device{
     }
 
     read_function read();
+    read_function clear();
 
     static void send_i2c_command(
         int address,

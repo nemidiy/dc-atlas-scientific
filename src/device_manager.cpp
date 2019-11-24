@@ -157,3 +157,8 @@ int DeviceManager::auto_discovery(){
       }
       return 0;
 }
+
+void DeviceManager::track_read(
+    dc::atlas::Device::device_type t, dc::atlas::Device::read_function f){
+  reads.insert(make_pair(t, f));
+}

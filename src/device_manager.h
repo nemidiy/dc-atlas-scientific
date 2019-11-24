@@ -40,12 +40,14 @@ struct DeviceManager{
 
     void loop();
 
-  int auto_discovery();
+    int auto_discovery();
 
-  std::map<dc::atlas::Device::device_type, dc::atlas::Device*>
-  get_all_devs(){
-    return all_devs;
-  }
+    std::map<dc::atlas::Device::device_type, dc::atlas::Device*>
+    get_all_devs(){
+        return all_devs;
+    }
+
+    void track_read(dc::atlas::Device::device_type t, dc::atlas::Device::read_function f);
 
 private:
 

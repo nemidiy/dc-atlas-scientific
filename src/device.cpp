@@ -71,6 +71,31 @@ Device::read_function Device::read(){
   return f;
 }
 
+Device::read_function Device::clear(){
+  send_i2c_command(i2c_addr, "Clear\0");
+
+  // we now wait 600ms for the response according to documentation
+  // so we just return the code that needs to be executed then so
+  // that we don't lock
+  auto f = [](Device* dev) -> double {
+    int response_data_size = 20;
+    char response_data[response_data_size];
+    DeviceResponse::i2c_response_code code = DeviceResponse::NO_DATA;
+    code = read_i2c_response(dev->i2c_addr, response_data, response_data_size);
+    double value = -1;
+    if(code == DeviceResponse::SUCCESS){
+      value = 0;
+    }else if(code == DeviceResponse::NOT_FINISHED){
+      //TODO raise exception
+    }else{
+      //TODO raise exception
+    }
+    return value;
+  };
+  //return the lambda
+  return f;
+}
+
 void Device::send_i2c_command(int address ,const char* cmd){
   Wire.beginTransmission(address);
   Wire.write(cmd);
