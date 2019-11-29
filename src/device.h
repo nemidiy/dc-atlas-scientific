@@ -69,8 +69,9 @@ struct Device{
       return dev_type;
     }
 
-    read_function read();
-    read_function clear();
+    std::string get_device_type_string();
+
+    void set_name(const std::string& name);
 
     static void send_i2c_command(
         int address,
@@ -94,6 +95,8 @@ struct Device{
     device_type dev_type;
 
     double last_value;
+
+    std::string name;
 };
 
 } // namespace atlas

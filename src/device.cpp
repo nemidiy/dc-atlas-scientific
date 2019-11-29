@@ -40,62 +40,6 @@ Device::~Device(){
 
 }
 
-Device::read_function Device::read(){
-  send_i2c_command(i2c_addr, "R\0");
-
-  // we now wait 600ms for the response according to documentation
-  // so we just return the code that needs to be executed then so
-  // that we don't lock
-  auto f = [](Device* dev) -> double {
-    double value = 0.00;
-    int response_data_size = 20;
-    char response_data[response_data_size];
-    DeviceResponse::i2c_response_code code = DeviceResponse::NO_DATA;
-    code = read_i2c_response(dev->i2c_addr, response_data, response_data_size);
-    if(code == DeviceResponse::SUCCESS){
-      // let's build the INFO response
-      DeviceResponse* response =
-        DeviceResponse::build_response(
-            DeviceCommand::READ, code, response_data, response_data_size);
-      ReadResponse* read = static_cast<ReadResponse*>(response);
-      value = read->get_value_double();
-      delete read;
-    }else if(code == DeviceResponse::NOT_FINISHED){
-      //TODO raise exception
-    }else{
-      //TODO raise exception
-    }
-    return value;
-  };
-  //return the lambda
-  return f;
-}
-
-Device::read_function Device::clear(){
-  send_i2c_command(i2c_addr, "Clear\0");
-
-  // we now wait 600ms for the response according to documentation
-  // so we just return the code that needs to be executed then so
-  // that we don't lock
-  auto f = [](Device* dev) -> double {
-    int response_data_size = 20;
-    char response_data[response_data_size];
-    DeviceResponse::i2c_response_code code = DeviceResponse::NO_DATA;
-    code = read_i2c_response(dev->i2c_addr, response_data, response_data_size);
-    double value = -1;
-    if(code == DeviceResponse::SUCCESS){
-      value = 0;
-    }else if(code == DeviceResponse::NOT_FINISHED){
-      //TODO raise exception
-    }else{
-      //TODO raise exception
-    }
-    return value;
-  };
-  //return the lambda
-  return f;
-}
-
 void Device::send_i2c_command(int address ,const char* cmd){
   Wire.beginTransmission(address);
   Wire.write(cmd);
@@ -144,4 +88,21 @@ DeviceResponse::i2c_response_code Device::read_i2c_response(
   }
 
   return response_code;
+}
+
+std::string Device::get_device_type_string(){
+    switch(dev_type){
+        case PH_SENSOR   : return "PH";
+        case EC_SENSOR   : return "EC";
+        case TEMP_SENSOR : return "TEMP";
+        case ORP_SENSOR  : return "ORP";
+        case DO_SENSOR   : return "DO";
+        case FLOW_SENSOR : return "FLOW";
+        case PUMP        : return "PUMP";
+    }
+    return "UNK";
+}
+
+void Device::set_name(const std::string& name){
+    this->name = name;
 }

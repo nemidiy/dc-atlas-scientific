@@ -17,16 +17,45 @@ limitations under the License.
 #include "device_manager.h"
 #include "device_command.h"
 #include "info_response.h"
+#include "read_response.h"
+#include <sstream>
 
 using namespace dc::atlas;
 
-#define READ_TIME_MILLIS 900
-
 DeviceManager* DeviceManager::instance;
 
-DeviceManager::DeviceManager(unsigned long int loop_millis){
-  this->loop_millis = loop_millis;
-  this->last_run = 0;
+DeviceManager::response_callback DeviceManager::null_callback = [](
+            dc::atlas::Device* dev,
+            dc::atlas::DeviceResponse::i2c_response_code code,
+            char* buffer,
+            unsigned int buffer_size) -> void* {
+        // do nothing, it's just a clear
+        return NULL;
+    };
+
+DeviceManager::response_callback DeviceManager::read_double_callback = [](
+            dc::atlas::Device* dev,
+            dc::atlas::DeviceResponse::i2c_response_code code,
+            char* buffer,
+            unsigned int buffer_size) -> void* {
+    if(code == DeviceResponse::SUCCESS){
+      // let's build the read response
+      DeviceResponse* response =
+        DeviceResponse::build_response(
+            DeviceCommand::READ, code, buffer, buffer_size);
+      ReadResponse* read = static_cast<ReadResponse*>(response);
+      dev->last_value = read->get_value_double();
+      delete read;
+    }else if(code == DeviceResponse::NOT_FINISHED){
+      //TODO raise exception
+    }else{
+      //TODO raise exception
+    }
+    return NULL;
+  };
+
+DeviceManager::DeviceManager(){
+  randomSeed(millis());
 }
 
 DeviceManager::~DeviceManager(){
@@ -42,51 +71,67 @@ DeviceManager* DeviceManager::get_instance(DeviceManager* i){
   return DeviceManager::instance;
 }
 
-void DeviceManager::add_device(
-            Device::device_type t,
-            Device* dev){
-  all_devs.insert(std::make_pair(t, dev));
-}
-
-double DeviceManager::get_device_value(Device::device_type t){
-  
-  std::map<dc::atlas::Device::device_type, dc::atlas::Device*>::iterator it;
-  if((it = all_devs.find(t)) != all_devs.end()){
-    return it->second->get_last_value();
-  }
-  return -999;
+double DeviceManager::get_device_value_double(const std::string& dev_name) const{
+    std::map<std::string, dc::atlas::Device*>::const_iterator it;
+    if((it = devices.find(dev_name)) != devices.end()){
+       return it->second->get_last_value();
+    }
+    return -999;
 }
 
 void DeviceManager::loop(){
-  unsigned long int now = millis();
-  if(now - last_run >= READ_TIME_MILLIS){
-    // we can fetch the values from devices
     fetch_responses();
-  }
-
-  if(now - last_run >= loop_millis){
-    //moment to send reads
-    last_run = now;
-    send_reads();
-  }
-
+    send_scheduled();
 }
 
-void DeviceManager::send_reads(){
-  for(auto& kv: all_devs){
-    auto read_funct = kv.second->read();
-    reads.insert(make_pair(kv.first, read_funct));
-  }
+void DeviceManager::send_scheduled(){
+    unsigned long now = millis();
+    for(auto it = scheduling_queue.begin(); it != scheduling_queue.end(); ){
+        if(now < it->exec_time_millis){
+            //not ready to execute
+            ++it;
+            continue;
+        }
+        Device* dev = get_device(it->device_name);
+        if(!dev){
+            Serial.print("ERROR: unkown device ");
+            Serial.println(it->device_name.c_str());
+            continue;
+        }
+        //send the command
+        Device::send_i2c_command(dev->i2c_addr, it->command.c_str());
+        // set the time to fetch the reponse
+        it->fetch_time_millis = millis() + it->response_time_millis;
+        // move the schedule to the response queue
+        response_queue.push_back(*it);
+        //remove from the scheduling queue
+        it = scheduling_queue.erase(it);
+    }
 }
 
 void DeviceManager::fetch_responses(){
-  for(auto it = reads.cbegin(); it != reads.cend(); ){
-    //execute the lambda
-    double value = it->second(all_devs[it->first]);
-    //save the value
-    all_devs[it->first]->last_value = value;
-    reads.erase(it++);
-  }
+    unsigned long now = millis();
+    for(auto it = response_queue.begin(); it != response_queue.end(); ){
+        if(now < it->fetch_time_millis){
+            //not ready to fetch the response
+            ++it;
+            continue;
+        }
+        // we are ready to fetch the response
+        int response_data_size = 20;
+        char response_data[response_data_size];
+        Device* dev = get_device(it->device_name);
+        DeviceResponse::i2c_response_code code =
+            Device::read_i2c_response(dev->i2c_addr, response_data, response_data_size);
+        // execute the callback
+        it->callback(dev, code, response_data, response_data_size);
+        if(it->auto_interval){
+            // it has the auto interval set so we need to queue it back
+            it->exec_time_millis = millis() + it->auto_interval;
+            scheduling_queue.push_back(*it);
+        }
+        it = response_queue.erase(it);
+    }
 }
 
 int DeviceManager::auto_discovery(){
@@ -127,7 +172,7 @@ int DeviceManager::auto_discovery(){
             
             // we can now build the device and save it
             Device* dev = new Device(i, info->get_device_type());
-            all_devs.insert(std::make_pair(info->get_device_type(), dev));
+            add_device(dev);
             delete info;
             break;
           }
@@ -158,7 +203,44 @@ int DeviceManager::auto_discovery(){
       return 0;
 }
 
-void DeviceManager::track_read(
-    dc::atlas::Device::device_type t, dc::atlas::Device::read_function f){
-  reads.insert(make_pair(t, f));
+std::string DeviceManager::add_device(
+        dc::atlas::Device* dev, const std::string& name){
+    std::string dev_name;
+    if(!name.size()){
+        std::ostringstream os;
+        os << dev->get_device_type_string() << "_" << random(1000, 1999);
+        dev_name = os.str();
+    }else{
+        dev_name = name;
+    }
+    devices.insert(make_pair(dev_name, dev));
+    dev->set_name(dev_name);
+    return dev_name;
+}
+
+void DeviceManager::schedule_command(
+            const std::string& command,
+            const std::string& device_name,
+            response_callback& callback,
+            unsigned long int exec_millis,
+            unsigned long int response_millis,
+            unsigned long int auto_interval){
+
+    schedule s;
+    s.command = command;
+    s.device_name = device_name;
+    s.callback = callback;
+    s.response_time_millis = response_millis;
+    s.exec_time_millis = millis() + exec_millis;
+    s.fetch_time_millis = 0;
+    s.auto_interval = auto_interval;
+    scheduling_queue.push_back(s);
+}
+
+Device* DeviceManager::get_device(const std::string& name) const {
+    std::map<std::string, dc::atlas::Device*>::const_iterator it;
+    if((it = devices.find(name)) != devices.end()){
+       return it->second;
+    }
+    return NULL;
 }
