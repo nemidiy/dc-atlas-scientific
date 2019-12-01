@@ -14,8 +14,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#ifndef __GJ_ATLAS_DEVICE_H__
-#define __GJ_ATLAS_DEVICE_H__
+#ifndef __DC_ATLAS_DEVICE_H__
+#define __DC_ATLAS_DEVICE_H__
 #include <map>
 #include <string>
 #include <vector>
@@ -69,7 +69,9 @@ struct Device{
       return dev_type;
     }
 
-    read_function read();
+    std::string get_device_type_string();
+
+    void set_name(const std::string& name);
 
     static void send_i2c_command(
         int address,
@@ -84,6 +86,10 @@ struct Device{
       return last_value;
     }
 
+    std::string get_name(){
+      return name;
+    }
+
   private:
 
     //i2c address for the device
@@ -93,6 +99,8 @@ struct Device{
     device_type dev_type;
 
     double last_value;
+
+    std::string name;
 };
 
 } // namespace atlas

@@ -14,8 +14,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#ifndef __GJ_ATLAS_INFO_RESPONSE_H__
-#define __GJ_ATLAS_INFO_RESPONSE_H__
+#ifndef __DC_ATLAS_INFO_RESPONSE_H__
+#define __DC_ATLAS_INFO_RESPONSE_H__
 #include <Arduino.h>
 #include <string>
 #include <vector>

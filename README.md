@@ -56,6 +56,8 @@ Make sure you set up your EZO shields in I2C mode and assign an address that is 
 #include <device.h>
 #include <device_manager.h>
 
+#define I2C_DO_ADDR 104
+
 /*
 Create the device manager. The manager is the main gateway to all your 
 sensors. You will use it to loop and access the latests readings.
@@ -73,102 +75,41 @@ void setup(){
   //enable I2C.
   Wire.begin();
 
-  /*
-  auto discovery this will trigger auto discovery from port 90
-  through port 120. This call will print out on the serial port
-  the ports scanned and what it found.
-  */
-  device_manager.auto_discovery();
-  
-  for (auto& kv : device_manager.get_all_devs()) {
-    /*
-    Iterate over the devices found. Where :
-    kv.first : the device type
-    kv.second : the device instance
-    */
-  }
+  //create the Device, set the type to Disolved Oxygen @ the 104 I2C addr.
+  dev = new dc::atlas::Device(
+        I2C_DO_ADDR, dc::atlas::Device::DO_SENSOR);
+  //add to the device manager and give it a name.
+  device_manager.add_device(dev, "do");
+
+  // schedule the read command every 2 seconds.
+  device_manager.schedule_command(
+        // read command
+        "R", 
+        // name of the device to use
+        "do", 
+        // predefined callback that expects a double as a response from the device
+        // and updates the device lats read value.
+        dc::atlas::DeviceManager::read_double_callback, 
+        // execute 5 seconds from now
+        5000,
+        // fetch the response 900ms after the command was sent out
+        900,
+        // re-execute every 2 seconds
+        2000);
 }
 ```
 
-Executing the auto-discovery will print out on the serial port the following :
-```
-sending command to port 90
-	* response code is DeviceResponse::NO_DATA
----------------------------------------------
-
-...
-
----------------------------------------------
-sending command to port 98
-	* response code is DeviceResponse::NO_DATA
----------------------------------------------
-sending command to port 99
-	* response code is DeviceResponse::NO_DATA
----------------------------------------------
-sending command to port 100
-	* response code is DeviceResponse::SUCCESS
-	* response data is [?I,RTD,2.10]
-	* device_type 2
-	* firmware version 2.10
----------------------------------------------
-sending command to port 101
-	* response code is DeviceResponse::SUCCESS
-	* response data is [?I,pH,2.12]
-	* device_type 0
-	* firmware version 2.12
----------------------------------------------
-sending command to port 102
-	* response code is DeviceResponse::SUCCESS
-	* response data is [?I,ORP,2.10]
-	* device_type 3
-	* firmware version 2.10
----------------------------------------------
-sending command to port 103
-	* response code is DeviceResponse::SUCCESS
-	* response data is [?I,EC,2.13]
-	* device_type 1
-	* firmware version 2.13
----------------------------------------------
-sending command to port 104
-	* response code is DeviceResponse::SUCCESS
-	* response data is [?I,DO,2.13]
-	* device_type 4
-	* firmware version 2.13
----------------------------------------------
-sending command to port 105
-	* response code is DeviceResponse::NO_DATA
----------------------------------------------
-sending command to port 106
-	* response code is DeviceResponse::NO_DATA
-
-... all the way to port 120
-```
-Here the lib detected :
-* The RTD EZO in port 100
-* The PH EZO in port 101
-* The ORP EZO in port 102
-* The EC EZO in port 103
-* The DO EZO in port 104
-
 # Using the library: loop
 
-Once all the devices were found you need to loop over them in order to get the readings
 
 ```c++
 void loop(){
   // call the non-blocking loop the get readings
   device_manager.loop();  
   // do whatever, ie : get all the latest readings :
-  double temperature = dc::atlas::DeviceManager::get_instance() \
-                    ->get_device_value(dc::atlas::Device::TEMP_SENSOR);
-  double ph = dc::atlas::DeviceManager::get_instance() \
-                    ->get_device_value(dc::atlas::Device::PH_SENSOR);
-  double disolved = dc::atlas::DeviceManager::get_instance() \
-                    ->get_device_value(dc::atlas::Device::DO_SENSOR);
-  double orp = dc::atlas::DeviceManager::get_instance() \
-                    ->get_device_value(dc::atlas::Device::ORP_SENSOR);
-  double ec = dc::atlas::DeviceManager::get_instance() \
-                    ->get_device_value(dc::atlas::Device::EC_SENSOR);
+  auto dm = dc::atlas::DeviceManager::get_instance();
+  double disolved = dm->get_device_value_double("do")
+  
   
 } 
 ```
@@ -185,13 +126,9 @@ $ pio device monitor --port /dev/ttyUSB0 --baud 115200
 
 Internally the loop sends the read commands to the devices, storing the time and returning in order to not block, it will then track time to know when to request the value of the reading from the EZO shield. If interested in how this works check out the DeviceManager::send_reads and DeviceManager::fetch_responses calls.
 
-The Device class implements a read method that sends the read command over the I2C bus and returns a lambda function (thank u 11 std) that has the code and context that needs to be executed after the time needed by the EZO shield has gone by. All of this is orchestrated by the DeviceManager loop using the send_reads and fetch_responses calls.
-
-
 # TODO
 
 * Unit test
 * Hooking up some CI tool to run unit tests when commiting
 * Integrating other sensors ?
 * Making it available through the Platformio's library manager
-* Serial support
