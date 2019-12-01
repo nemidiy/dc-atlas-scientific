@@ -5,7 +5,7 @@ Furthermore it was built using [platform.io](https://platformio.org/). This libr
 # Disclaimer
 * Basic c++ coding knowledge is assumed
 * Platformio is installed, if not please refer to their documentation
-* The instructions assume you are using some Linux flavor, if using Windows or CrApple some things may not apply and to be honest I really don't care ;)
+* The instructions assume you are using some Linux flavor, if using Windows or Apple some things may not apply.
 * Atlas-Scientific is not related to this code in any way
 
 # Design decisions
