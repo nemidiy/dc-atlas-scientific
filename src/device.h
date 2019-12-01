@@ -86,6 +86,10 @@ struct Device{
       return last_value;
     }
 
+    std::string get_name(){
+      return name;
+    }
+
   private:
 
     //i2c address for the device
