@@ -87,6 +87,7 @@ void DeviceManager::loop(){
 void DeviceManager::send_scheduled(){
     unsigned long now = millis();
     for(auto it = scheduling_queue.begin(); it != scheduling_queue.end(); ){
+        //Serial.println(">>>>>>>>>>>>>>>> DeviceManager::send >>>>>>>>>>>>");
         if(now < it->exec_time_millis){
             //not ready to execute
             ++it;
@@ -106,12 +107,14 @@ void DeviceManager::send_scheduled(){
         response_queue.push_back(*it);
         //remove from the scheduling queue
         it = scheduling_queue.erase(it);
+        //Serial.println("<<<<<<<<<<<<<<<< DeviceManager::send <<<<<<<<<<<<");
     }
 }
 
 void DeviceManager::fetch_responses(){
     unsigned long now = millis();
     for(auto it = response_queue.begin(); it != response_queue.end(); ){
+        //Serial.println(">>>>>>>>>>>>>>>> DeviceManager::fetch >>>>>>>>>>>>");
         if(now < it->fetch_time_millis){
             //not ready to fetch the response
             ++it;
@@ -131,6 +134,7 @@ void DeviceManager::fetch_responses(){
             scheduling_queue.push_back(*it);
         }
         it = response_queue.erase(it);
+        //Serial.println("<<<<<<<<<<<<<<<< DeviceManager::fetch <<<<<<<<<<<<");
     }
 }
 
